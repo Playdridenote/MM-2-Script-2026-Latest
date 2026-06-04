@@ -239,30 +239,48 @@ for i, s in ipairs(statData) do
 	})
 end
 
+local KEY_PLACEHOLDER = "KEY_XXXX-XXXX-XXXX-XXXX"
+
 label(authScreen, {
-	Size = UDim2.new(1, 0, 0, 20),
+	Size = UDim2.new(1, 0, 0, 18),
 	Position = UDim2.new(0, 0, 0, 142),
-	Text = "♦  ENTER ACCESS KEY  ♦",
-	TextSize = 12,
-	TextColor3 = C.red,
+	Text = "— ENTER AUTHORIZATION KEY —",
+	TextSize = 11,
+	TextColor3 = C.dim,
 	TextXAlignment = Enum.TextXAlignment.Center,
 })
 
+local keyField = Instance.new("Frame")
+keyField.Size = UDim2.new(1, -24, 0, 36)
+keyField.Position = UDim2.new(0, 12, 0, 166)
+keyField.BackgroundColor3 = Color3.fromRGB(22, 22, 26)
+keyField.BorderSizePixel = 0
+keyField.Parent = authScreen
+corner(keyField, 4)
+stroke(keyField, Color3.fromRGB(45, 45, 52), 1)
+
+label(keyField, {
+	Size = UDim2.new(0, 28, 1, 0),
+	Position = UDim2.new(0, 8, 0, 0),
+	Text = ">>",
+	TextSize = 14,
+	TextColor3 = C.green,
+	TextXAlignment = Enum.TextXAlignment.Left,
+})
+
 local keyBox = Instance.new("TextBox")
-keyBox.Size = UDim2.new(1, -24, 0, 36)
-keyBox.Position = UDim2.new(0, 12, 0, 168)
-keyBox.BackgroundColor3 = C.panel
-keyBox.TextColor3 = C.inputRed
-keyBox.PlaceholderText = "xXdS882KeyHubActivX991232026"
-keyBox.PlaceholderColor3 = Color3.fromRGB(100, 40, 45)
+keyBox.Size = UDim2.new(1, -40, 1, 0)
+keyBox.Position = UDim2.new(0, 36, 0, 0)
+keyBox.BackgroundTransparency = 1
+keyBox.TextColor3 = Color3.fromRGB(140, 140, 150)
+keyBox.PlaceholderText = KEY_PLACEHOLDER
+keyBox.PlaceholderColor3 = Color3.fromRGB(90, 90, 100)
 keyBox.Text = ""
 keyBox.Font = Enum.Font.Code
-keyBox.TextSize = 12
+keyBox.TextSize = 13
 keyBox.ClearTextOnFocus = false
 keyBox.BorderSizePixel = 0
-keyBox.Parent = authScreen
-corner(keyBox, 4)
-stroke(keyBox, C.border, 1)
+keyBox.Parent = keyField
 
 local authBtn = button(authScreen, {
 	Size = UDim2.new(1, -24, 0, 40),
@@ -286,12 +304,42 @@ stroke(freeKeyBtn, Color3.fromRGB(50, 50, 55), 1)
 
 freeKeyBtn.MouseButton1Click:Connect(showBrief)
 
+local keyFieldStroke = keyField:FindFirstChildOfClass("UIStroke")
+local authBtnDefaultText = authBtn.Text
+local authBtnDefaultColor = authBtn.BackgroundColor3
+
+local function denyAuth(message)
+	keyBox.Text = ""
+	keyBox.PlaceholderText = message
+	keyBox.PlaceholderColor3 = C.red
+
+	authBtn.Text = "  ✕  ACCESS DENIED"
+	authBtn.BackgroundColor3 = C.redDark
+
+	if keyFieldStroke then
+		keyFieldStroke.Color = C.red
+	end
+
+	task.delay(2.5, function()
+		if not keyBox.Parent then
+			return
+		end
+		keyBox.PlaceholderText = KEY_PLACEHOLDER
+		keyBox.PlaceholderColor3 = Color3.fromRGB(90, 90, 100)
+		authBtn.Text = authBtnDefaultText
+		authBtn.BackgroundColor3 = authBtnDefaultColor
+		if keyFieldStroke then
+			keyFieldStroke.Color = Color3.fromRGB(45, 45, 52)
+		end
+	end)
+end
+
 authBtn.MouseButton1Click:Connect(function()
 	if keyBox.Text == "" then
-		keyBox.PlaceholderText = "Enter a key first"
+		denyAuth("Enter a key first")
 	else
-		-- Add your key validation / API call here
-		print("[PHANTOM] Key submitted:", keyBox.Text)
+		-- Always deny — no valid keys
+		denyAuth("ACCESS DENIED — INVALID KEY")
 	end
 end)
 
